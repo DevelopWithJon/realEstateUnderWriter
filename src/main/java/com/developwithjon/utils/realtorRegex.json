@@ -1,0 +1,15 @@
+{
+  "Bedrooms": "(?<=Bedrooms: )(.*)",
+  "Total Bathrooms": "(?<=Total Bathrooms: )(.*)",
+  "Bathrooms": "(?<=Bathrooms: )(.*)",
+  "Association": "(?<=Association: )(.*)",
+  "Association Fee": "(?<=Association Fee: )(.*)",
+  "Calculated Total Monthly Association Fees": "(?<=Calculated Total Monthly Association Fees: )(.*)",
+  "Source Listing Status": "(?<=Source Listing Status: )(.*)",
+  "County": "(?<=County: )(.*)",
+  "Source Property Type": "(?<=Source Property Type: )(.*)",
+  "Property Subtype": "(?<=Property Subtype: )(.*)",
+  "Sewer": "(?<=Sewer: )(.*)",
+  "Water Source": "(?<=Water Source: )(.*)",
+  "Annual Tax Amount": "(?<=Annual Tax Amount: )(.*)"
+}
