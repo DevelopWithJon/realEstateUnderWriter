@@ -11,9 +11,10 @@ public class StringParser {
         String[] addressArray = fullAddress.split(",");
         String[] stateArray = addressArray[2].trim().split(" ");
 
+        Convert converter = new Convert();
         addressMap.put("streetAddress", addressArray[0]);
         addressMap.put("city", addressArray[1]);
-        addressMap.put("state", stateArray[0]);
+        addressMap.put("state", converter.convertAbbrev(stateArray[0]));
         addressMap.put("zip", stateArray[1]);
         return addressMap;
     }

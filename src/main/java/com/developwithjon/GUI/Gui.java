@@ -1,8 +1,9 @@
 package com.developwithjon.GUI;
 
-import com.developwithjon.utils.Constants;
-import com.developwithjon.utils.GuiFunctions;
-import com.developwithjon.utils.RegexParser;
+import com.developwithjon.Profile.Profile;
+import com.developwithjon.Webscrape.MortageRateScrape;
+import com.developwithjon.Webscrape.PropertyTax;
+import com.developwithjon.utils.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,13 +13,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import com.developwithjon.utils.StringParser;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Gui {
+    static StringParser parser = new StringParser();
     private static JFrame frame;
     private static JTextArea textArea;
     private static JTextArea textArea2;
@@ -32,7 +33,8 @@ public class Gui {
     private static JScrollPane panel5;
     private static JTabbedPane tabbedPane;
     private static String[] frequencies;
-    private static SpinnerModel spinnerModel;
+    private static SpinnerModel spinnerModel1;
+    private static SpinnerModel spinnerModel2;
     private static JButton scrapeWebsiteButton;
     private static GuiFunctions functions;
     private String URLField;
@@ -44,7 +46,8 @@ public class Gui {
 
     public Gui() {
         frequencies = new String[]{"annual", "monthly"};
-        spinnerModel = new SpinnerNumberModel(0, 0, null, 1.0);
+        spinnerModel1 = new SpinnerNumberModel(0.0, 0.0, null, 1.0);
+        spinnerModel2 = new SpinnerNumberModel(0.0, 0.0, null, 1.0);
 
         // Initialize Frame
         frame = new JFrame();
@@ -106,7 +109,9 @@ public class Gui {
         stateLabel.setBounds(200, 230, 140, 25);
         textArea.add(stateLabel);
 
-        String[] statesList = new Constants().statesList();
+        Constants constants = new Constants();
+        String[] statesList = constants.statesList();
+        String[] countyStatesList = constants.countyStates();
 
         JComboBox<String> stateCombo = new JComboBox(statesList);
         stateCombo.setBounds(200, 250, 140, 25);
@@ -168,48 +173,6 @@ public class Gui {
         });
         textArea.add(pageOneButton);
 
-        scrapeWebsiteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                functions = new GuiFunctions();
-                RegexParser parser = new RegexParser();
-
-                if (e.getSource() == scrapeWebsiteButton) {
-                    String URL = URLField.getText();
-                    String domain = parser.getDomain(URL, "[a-zA-Z0-9]*\\.[a-zA-Z0-9]*"); // TODO: add feature to web scrape based on domain
-                    try {
-                        ArrayList scrapedOutput = functions.webScrapeFunction(URL);
-                        String scrapedFeaturesString = new Gson().toJson(scrapedOutput.get(0));
-                        System.out.println(scrapedOutput.get(2));
-                        ArrayList<String> scrapedTableData = (ArrayList) scrapedOutput.get(2);
-                        // String scrapedPropertyFeaturesString = scrapedOutput.get(3).toString();
-                        JSONObject scrapedAddress = new JSONObject(new Gson().toJson(scrapedOutput.get(1)));
-                        JSONObject scrapedFeatures = new JSONObject(scrapedFeaturesString);
-                        System.out.println(scrapedTableData);
-                        //JSONObject scrapedPropertyFeatures = new JSONObject(scrapedPropertyFeaturesString);
-                        HashMap<String, String> address = new StringParser().parseAddress(scrapedAddress.get("address").toString());
-                        String streetAddress = address.get("streetAddress").toString();
-                        String city = address.get("city").toString();
-                        String state = address.get("state").toString();
-                        String zip = address.get("zip").toString();
-
-                        setField("Bedrooms", scrapedFeatures, bedroomField);
-                        setField("Bathrooms", scrapedFeatures, bathroomField);
-                        setField(streetAddress, streetAddressField);
-                        setField(city, cityField);
-                        setField(state, stateCombo);
-                        setField(zip, zipField);
-
-
-                    } catch (Exception er) {
-                        if (domain == null){
-                            System.out.println("domain is null");
-                        }
-                        er.printStackTrace();
-                    }
-                }
-            }
-        });
         //Second Tab
         JLabel purchaseTitleLabel = new JLabel("Purchase Details");
         purchaseTitleLabel.setBounds(240, 20, 200, 25);
@@ -239,7 +202,7 @@ public class Gui {
         repairCostField.setBounds(200, 120, 120, 25);
         textArea2.add(repairCostField);
 
-        JLabel propertyValueGrowthLabel = new JLabel("Annual property value growth(%)");
+        JLabel propertyValueGrowthLabel = new JLabel("Annual property value growth (%)");
         propertyValueGrowthLabel.setBounds(20, 160, 300, 25);
         textArea2.add(propertyValueGrowthLabel);
 
@@ -247,12 +210,20 @@ public class Gui {
         propertyValueGrowthField.setBounds(20, 180, 120, 25);
         textArea2.add(propertyValueGrowthField);
 
+        JLabel closingCostLabel = new JLabel("Anticipated closing cost (%)");
+        closingCostLabel.setBounds(20, 220, 300, 25);
+        textArea2.add(closingCostLabel);
+
+        JTextField closingCostField = new JTextField(20);
+        closingCostField.setBounds(20, 240, 120, 25);
+        textArea2.add(closingCostField);
+
         // Third Tab
         JLabel loanTitleLabel = new JLabel("Loan Details");
         loanTitleLabel.setBounds(240, 5, 150, 25);
         textArea3.add(loanTitleLabel);
 
-        JLabel cashPurchaseLabel = new JLabel("Case Purchase?");
+        JLabel cashPurchaseLabel = new JLabel("Cash Purchase?");
         cashPurchaseLabel.setBounds(240, 50, 150, 25);
         textArea3.add(cashPurchaseLabel);
 
@@ -291,7 +262,7 @@ public class Gui {
         textArea4.add(rentalTitleLabel);
 
         JLabel monthlyIncomeLabel = new JLabel("Gross Monthly Income");
-        monthlyIncomeLabel.setBounds(20, 50, 120, 25);
+        monthlyIncomeLabel.setBounds(20, 50, 200, 25);
         textArea4.add(monthlyIncomeLabel);
 
         JTextField monthlyIncomeField = new JTextField(20);
@@ -306,6 +277,14 @@ public class Gui {
         incomeGrowthField.setBounds(20, 120, 120, 25);
         textArea4.add(incomeGrowthField);
 
+        JLabel expenseGrowthLabel = new JLabel("Annualized Expense Growth");
+        expenseGrowthLabel.setBounds(260, 100, 300, 25);
+        textArea4.add(expenseGrowthLabel);
+
+        JTextField expenseGrowthField = new JTextField("%", 20);
+        expenseGrowthField.setBounds(260, 120, 120, 25);
+        textArea4.add(expenseGrowthField);
+
         // Fifth Page
         JLabel expenseTitleLabel = new JLabel("Expense Details");
         expenseTitleLabel.setBounds(240, 5, 150, 25);
@@ -315,8 +294,9 @@ public class Gui {
         propertyTaxesLabel.setBounds(20, 50, 120, 25);
         textArea5.add(propertyTaxesLabel);
 
-        JSpinner propertyTaxSpinner = new JSpinner(spinnerModel);
+        JSpinner propertyTaxSpinner = new JSpinner(spinnerModel1);
         propertyTaxSpinner.setBounds(20, 70, 100, 25);
+        propertyTaxSpinner.setValue(0.0);
         textArea5.add(propertyTaxSpinner);
 
         JComboBox<String> propertyTaxesFrequencyCombo = new JComboBox(frequencies);
@@ -327,8 +307,9 @@ public class Gui {
         insuranceLabel.setBounds(20, 100, 120, 25);
         textArea5.add(insuranceLabel);
 
-        JSpinner insuranceSpinner = new JSpinner(spinnerModel);
+        JSpinner insuranceSpinner = new JSpinner(spinnerModel2);
         insuranceSpinner.setBounds(20, 120, 100, 25);
+        insuranceSpinner.setValue(0.0);
         textArea5.add(insuranceSpinner);
 
         JComboBox<String> insuranceFrequencyCombo = new JComboBox(frequencies);
@@ -417,6 +398,153 @@ public class Gui {
         otherField.setBounds(20, 620 + shift, 120, 25);
         textArea5.add(otherField);
 
+        JButton evaluateButton = new JButton("evaluate");
+        evaluateButton.setBounds(400, 700 + shift, 120, 25);
+        evaluateButton.setBackground(Color.BLACK);
+        evaluateButton.setBackground(Color.BLUE);
+        textArea5.add(evaluateButton);
+
+        // Button Action Listener Logic
+
+        scrapeWebsiteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                functions = new GuiFunctions();
+                RegexParser parser = new RegexParser();
+
+                if (e.getSource() == scrapeWebsiteButton) {
+                    String URL = URLField.getText();
+                    String domain = parser.getDomain(URL, "[a-zA-Z0-9]*\\.[a-zA-Z0-9]*"); // TODO: add feature to web scrape based on domain
+                    try {
+                        Convert converter = new Convert();
+
+                        ArrayList scrapedOutput = functions.webScrapeFunction(URL);
+
+                        String scrapedFeaturesString = new Gson().toJson(scrapedOutput.get(0));
+                        ArrayList<String> scrapedTableData = (ArrayList) scrapedOutput.get(2);
+                        HashMap scrapedFundamentals = (HashMap) scrapedOutput.get(1);
+                        HashMap scrapedPropertyFeatures = (HashMap) scrapedOutput.get(3);
+
+                        JSONObject scrapedAddress = new JSONObject(new Gson().toJson(scrapedOutput.get(1)));
+                        JSONObject scrapedFeatures = new JSONObject(scrapedFeaturesString);
+
+                        HashMap<String, String> address = new StringParser().parseAddress(scrapedAddress.get("address").toString());
+                        String streetAddress = address.get("streetAddress").toString();
+                        String city = address.get("city").toString();
+                        String state = address.get("state").toString();
+                        String zip = address.get("zip").toString();
+                        String yearBuilt = scrapedPropertyFeatures.get("yearBuilt").toString();
+                        String offerPrice = scrapedFundamentals.get("offerPrice").toString();
+                        String county = scrapedFeatures.get("County").toString();
+                        String totalRent = scrapedPropertyFeatures.get("totalRent").toString();
+
+                        if (Arrays.asList(countyStatesList).contains(state)){
+                            System.out.println("adding ` County`");
+                            county += " County";
+                        }
+                        PropertyTax propertyTaxAPI = new PropertyTax();
+                        MortageRateScrape mortageRateScrape = new MortageRateScrape();
+                        String mortgageRate = Float.toString(mortageRateScrape.mortgageRateAPIRequest());
+
+                        JSONObject propertyTaxInfo = propertyTaxAPI.requestPropertyTaxInfo(state);
+                        float propertyTax = converter.convertToDecimal(propertyTaxInfo.getJSONObject(county).getFloat("Average Effective Property Tax Rate")); // TODO: Florida has `county` in all country names
+                        System.out.printf("propertytax = %f", propertyTax);
+                        int propertyTaxAmount = Math.round(propertyTax * Float.parseFloat(offerPrice)); //TODO: test
+
+                        //Page One Setter
+                        setField("Bedrooms", scrapedFeatures, bedroomField);
+                        setField("Bathrooms", scrapedFeatures, bathroomField);
+                        setField(streetAddress, streetAddressField);
+                        setField(city, cityField);
+                        setField(state, stateCombo);
+                        setField(zip, zipField);
+                        setField(yearBuilt, yearBuiltField);
+
+                        // Page Two Setter
+                        setField(offerPrice, purchasePriceField);
+                        setField("3", propertyValueGrowthField);
+
+                        // Page Three Setter
+                        setField(mortgageRate, interestRateField);
+                        setField("30", loanTermField);
+                        setField(Double.toString(Double.parseDouble(offerPrice)*.2), downPaymentField);
+
+                        // Page Four Setter
+
+                        setField(totalRent, monthlyIncomeField);
+                        setField("3", incomeGrowthField);
+                        setField("3", expenseGrowthField);
+
+                        // Page Five Setter
+                        setField(propertyTaxAmount, propertyTaxSpinner);
+
+                    } catch (Exception er) {
+                        if (domain == null){
+                            System.out.println("domain is null");
+                        }
+                        er.printStackTrace();
+                    }
+                }
+            }
+        });
+        evaluateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == evaluateButton){
+                    Profile profile = new Profile();
+
+
+                    collectStreetAddress(profile, streetAddressField);
+                    collectCity(profile, cityField);
+                    collectState(profile, stateCombo);
+                    collectZip(profile, zipField);
+                    collectSqrt(profile, sqftField);
+                    collectYearBuilt(profile, yearBuiltField);
+                    collectBathroom(profile, bathroomField);
+                    collectBedroom(profile, bedroomField);
+
+                    collectPurchasePrice(profile, purchasePriceField);
+                    collectAfterRepairValue(profile, aRVField);
+                    collectRepairCost(profile, repairCostField);
+                    collectAnnualizedPropertyValueGrowth(profile, propertyValueGrowthField);
+                    collectAnticipatedClosingCost(profile, closingCostField);
+
+                    collectCashPurchase(profile, cashPurchaseCheckBox);
+                    collectDownPayment(profile, downPaymentField);
+                    collectInterestRate(profile, interestRateField);
+                    collectLoanTerm(profile, loanTermField);
+
+                    collectGrossMonthlyIncome(profile, monthlyIncomeField);
+                    collectAnnualizedIncomeGrowth(profile, incomeGrowthField);
+                    collectAnnualizedExpenseGrowth(profile, expenseGrowthField);
+
+                    collectPropertyTax(profile, propertyTaxSpinner);
+                    collectPropertyTaxFrequency(profile, propertyTaxesFrequencyCombo);
+                    collectInsurance(profile, insuranceSpinner);
+                    collectInsuranceFrequency(profile, insuranceFrequencyCombo);
+                    collectRepairsMaintenance(profile, repairesMaintenanceField);
+                    collectVacancy(profile, vacancyField);
+                    collectCapitalEx(profile, capitalExpendituresField);
+                    collectManagement(profile, managementFeesField);
+                    collectGas(profile, gasField);
+                    collectElectric(profile, electricityField);
+                    collectWater(profile, waterSewageField);
+                    collectHOA(profile, hOAFeesField);
+                    collectOther(profile, otherField);
+
+                    Calculations calculations = new Calculations();
+
+                    System.out.printf("capex: %s\n", profile.getCapitalEx());
+                    System.out.printf("income g: %s\n", profile.getAnnualizedIncomeGrowth());
+                    System.out.printf("insurance: %s\n", profile.getInsurance());
+                    System.out.printf("NOI: %s\n", calculations.calculateAllNOI(profile));
+                    System.out.printf("TaxArray: %s\n", calculations.calculateAllTax(profile).toString());
+                    System.out.printf("ElectricityArray: %s\n", calculations.calculateAllElectricity(profile).toString());
+                    System.out.printf("InsuranceArray: %s\n", calculations.calculateAllInsurance(profile).toString());
+                    System.out.printf("WaterArray: %s\n", calculations.calculateAllWater(profile).toString());
+                }
+            }});
+
         // Frame Construction
         tabbedPane = new JTabbedPane();
 
@@ -446,6 +574,223 @@ public class Gui {
     }
     public static void setField(String value, JComboBox field){
         field.setSelectedItem(value);
+    }
+    public static void setField(Float value, JSpinner field){
+        field.setValue(value);
+    }
+    public static void setField(Integer value, JSpinner field){
+        field.setValue(value);
+    }
+    public static void collectStreetAddress(Profile profile, JTextField field){
+        profile.setStreetAddress(field.getText());
+    }
+    public static void collectCity(Profile profile, JTextField field){
+        profile.setCity(field.getText());
+    }
+    public static void collectState(Profile profile, JComboBox field){
+        profile.setState(field.getSelectedItem().toString());
+    }
+    public static void collectZip(Profile profile, JTextField field){
+        profile.setZip(field.getText());
+    }
+    public static void collectBedroom(Profile profile, JTextField field) {
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0";
+        }
+        profile.setBedroom(Integer.parseInt(fieldResult));
+    }
+    public static void collectBathroom(Profile profile, JTextField field) {
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0";
+        }
+        profile.setBathroom(Integer.parseInt(fieldResult));
+    }
+    public static void collectSqrt(Profile profile, JTextField field) {
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setSqft(Double.parseDouble(fieldResult));
+    }
+    public static void collectYearBuilt(Profile profile, JTextField field) {
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0";
+        }
+        profile.setYearBuilt(Integer.parseInt(fieldResult));
+    }
+    public static void collectPurchasePrice(Profile profile, JTextField field) {
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setPurchasePrice(Double.parseDouble(fieldResult));
+    }
+    public static void collectAfterRepairValue(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setAfterRepairValue(Double.parseDouble(fieldResult));
+    }
+    public static void collectAnnualizedPropertyValueGrowth(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setAnnualPropertyValueGrowth(Float.parseFloat(fieldResult));
+    }
+    public static void collectAnticipatedClosingCost(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "6.0";
+        }
+        profile.setClosingCost(Double.parseDouble(fieldResult));
+    }
+    public static void collectRepairCost(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setRepairCost(Double.parseDouble(fieldResult));
+    }
+    public static void collectDownPayment(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setDownPayment(Double.parseDouble(fieldResult));
+    }
+    public static void collectInterestRate(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        Convert convert = new Convert();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setInterestRate(convert.convertToDecimal(Float.parseFloat(fieldResult)));
+    }
+    public static void collectLoanTerm(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0";
+        }
+        profile.setLoanTerm(Integer.parseInt(fieldResult));
+    }
+    public static void collectCashPurchase(Profile profile, JCheckBox field){
+        profile.setCashPurchase(field.isSelected());
+    }
+    public static void collectGrossMonthlyIncome(Profile profile, JTextField field){
+        String fieldResult = field.getText();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setGrossMonthlyIncome(Double.parseDouble(fieldResult));
+    }
+    public static void collectAnnualizedIncomeGrowth(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "%");
+        Convert convert = new Convert();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setAnnualizedIncomeGrowth(convert.convertToDecimal(Float.parseFloat(fieldResult)));
+    }
+    public static void collectAnnualizedExpenseGrowth(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "%");
+        Convert convert = new Convert();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setAnnualizedExpenseGrowth(convert.convertToDecimal(Float.parseFloat(fieldResult)));
+    }
+    public static void collectPropertyTax(Profile profile, JSpinner field){
+        String fieldResult = field.getValue().toString();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setPropertyTax(Double.parseDouble(fieldResult));
+    }
+    public static void collectPropertyTaxFrequency(Profile profile, JComboBox field){
+        profile.setPropertyTaxFrequency(field.getSelectedItem().toString());
+    }
+    public static void collectInsurance(Profile profile, JSpinner field){
+        String fieldResult = field.getValue().toString();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            System.out.println("empty");
+            fieldResult = "0.0";
+        }
+        profile.setInsurance(Double.parseDouble(fieldResult));
+    }
+    public static void collectInsuranceFrequency(Profile profile, JComboBox field){
+        profile.setInsuranceFrequency(field.getSelectedItem().toString());
+    }
+    public static void collectRepairsMaintenance(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "%");
+        Convert convert = new Convert();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setRepairsMaintenance(convert.convertToDecimal(Float.parseFloat(fieldResult)));
+    }
+    public static void collectVacancy(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "%");
+        Convert convert = new Convert();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setVacancy(convert.convertToDecimal(Float.parseFloat(fieldResult)));
+    }
+    public static void collectCapitalEx(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "%");
+        Convert convert = new Convert();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setCapitalEx(convert.convertToDecimal(Float.parseFloat(fieldResult)));
+    }
+    public static void collectManagement(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "%");
+        Convert convert = new Convert();
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setManagement(convert.convertToDecimal(Float.parseFloat(fieldResult)));
+    }
+    public static void collectGas(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "$");
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setGas(Double.parseDouble(fieldResult));
+    }
+    public static void collectElectric(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "$");
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setElectric(Double.parseDouble(fieldResult));
+    }
+    public static void collectWater(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "$");
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setWater(Double.parseDouble(fieldResult));
+    }
+    public static void collectHOA(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "$");
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setHOA(Double.parseDouble(fieldResult));
+    }
+    public static void collectOther(Profile profile, JTextField field){
+        String fieldResult = parser.removeFix(field.getText(), "$");
+        if (fieldResult.trim().isEmpty() || fieldResult == null) {
+            fieldResult = "0.0";
+        }
+        profile.setOther(Double.parseDouble(fieldResult));
     }
 }
 

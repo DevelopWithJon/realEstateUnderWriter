@@ -1,7 +1,7 @@
 {
-  "Bedrooms": "(?<=Bedrooms: )(.*)",
+  "Bedrooms": "(?<=Bedrooms: )([0-9]){1,2}",
   "Total Bathrooms": "(?<=Total Bathrooms: )(.*)",
-  "Bathrooms": "(?<=Bathrooms: )(.*)",
+  "Bathrooms": "(?<=Bathrooms: )([0-9]){1,2}",
   "Association": "(?<=Association: )(.*)",
   "Association Fee": "(?<=Association Fee: )(.*)",
   "Calculated Total Monthly Association Fees": "(?<=Calculated Total Monthly Association Fees: )(.*)",
@@ -11,5 +11,8 @@
   "Property Subtype": "(?<=Property Subtype: )(.*)",
   "Sewer": "(?<=Sewer: )(.*)",
   "Water Source": "(?<=Water Source: )(.*)",
-  "Annual Tax Amount": "(?<=Annual Tax Amount: )(.*)"
+  "Annual Tax Amount": "(?<=Annual Tax Amount: )(.*)",
+  "Year Built": "(?<=Year Built: )([0-9]){4}",
+  "Property Subtype": "(?<=Property Subtype: )(.*)",
+  "Rent": "(?<=Rent: )([+-]?([0-9]*[.])?[0-9]+){1,10}"
 }

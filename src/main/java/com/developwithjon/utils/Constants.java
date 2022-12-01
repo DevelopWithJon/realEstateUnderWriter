@@ -10,6 +10,13 @@ public class Constants {
         };
         return states;
     }
+
+    public String[] countyStates(){
+        String[] countyStates = {
+                "Florida", "Arizona"
+        };
+        return countyStates;
+    }
     public Constants() {
     }
 }

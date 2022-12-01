@@ -16,5 +16,17 @@ public class Convert {
             return "";
         }
     }
+
+    public float convertToDecimal(Float percent){
+        Float outputDecimal = 0.0f;
+        try{
+            outputDecimal = percent / 100;
+            return outputDecimal;
+        } catch (Exception e){
+            e.printStackTrace();
+            return outputDecimal;
+        }
+
+    }
 }
 

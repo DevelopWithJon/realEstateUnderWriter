@@ -1,5 +1,6 @@
 package com.developwithjon.Webscrape;
 
+import com.developwithjon.utils.Calculations;
 import com.developwithjon.utils.RegexParser;
 import com.developwithjon.utils.StringParser;
 import com.google.gson.Gson;
@@ -23,7 +24,7 @@ public class WebScrape {
         ArrayList<Object> dataArray;
 
         try{
-            System.out.printf("collecting data from %s", URL);
+            System.out.printf("collecting data from %s\n", URL);
             document = Jsoup.connect(URL).get();
 
             parseFeatures(document);
@@ -97,27 +98,45 @@ public class WebScrape {
         String yearBuilt;
         String HOAFee;
         String propertyType;
+        String averageRental;
+        String totalUnitRents;
         HashMap<String, Object> propertyFeatureMap = new HashMap<>();
 
         try {
+            Thread.sleep(10);
             int propertyFeaturesSize = document.select("div:contains(Property Features)").size();
             if (propertyFeaturesSize > 0) {
+                System.out.println("searching for property features...");
                 Element propertyFeatures = document.select("div:contains(Property Features)").get(propertyFeaturesSize - 1);
                 // bedrooms
                 int bedroomSize = propertyFeatures.select("ul:contains(Bedrooms)").size();
-                Element bedrooms = propertyFeatures.select("ul:contains(Bedrooms)").get(bedroomSize-1);
+                String bedrooms = propertyFeatures.select("ul:contains(Bedrooms)").get(bedroomSize-1).text();
                 // Building & Construction
+
                 int yearBuiltSize = propertyFeatures.select("ul:contains(Year Built:)").size();
                 yearBuilt = propertyFeatures.select("ul:contains(Year Built:)").get(yearBuiltSize-1).text();
-                int HOAFeeSize = propertyFeatures.select("ul:contains(Association Fee:)").size();
-                System.out.printf("fee: %s", HOAFeeSize);
-                HOAFee = propertyFeatures.select("ul:contains(Association Fee:)").get(HOAFeeSize-1).text();
-                int propertyTypeSize = propertyFeatures.select("ul:contains(Property Subtype:)").size();
-                propertyType = propertyFeatures.select("ul:contains(Property Subtype:)").get(propertyTypeSize-1).text();
+                RegexParser parser = new RegexParser();
 
+                int HOAFeeSize = propertyFeatures.select("ul:contains(Association Fee:)").size();
+                int propertyTypeSize = propertyFeatures.select("ul:contains(Property Subtype:)").size();
+                Elements propertyEle = propertyFeatures.select("ul:contains(Property Subtype:)");
+                propertyType = propertyEle.select("li:contains(Property Subtype:)").text();
+
+                String rent = propertyFeatures.select("ul:contains(Rent:)").toString();
+
+                ArrayList<String> rentArray = parser.parseWebscrapeArray(rent, "Rent");
+                Calculations calc = new Calculations();
+
+                String totalRent = Double.toString(calc.calculateSum(rentArray));
+
+                System.out.println(totalRent);
                 // Add to map
-                propertyFeatureMap.put("yearBuilt", yearBuilt);
-                propertyFeatureMap.put("propertyType", propertyType);
+                propertyFeatureMap.put("yearBuilt", parser.parseWebscrape(yearBuilt, "Year Built"));
+                propertyFeatureMap.put("propertyType", parser.parseWebscrape(propertyType, "Property Subtype"));
+                propertyFeatureMap.put("totalRent", totalRent);
+
+            } else{
+                System.out.printf("no property features found...\n%s\n", document.select("div:contains(Property Features)").text());
             }
         } catch (Exception e){
             e.printStackTrace();

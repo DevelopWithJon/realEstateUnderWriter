@@ -20,15 +20,11 @@ public class PropertyTax {
             Elements tableclass = document.getElementsByClass("table-border-top tab-ctr wide75 table-columns-left-center table-columns-tight hide-tabs-in-mobile");
             Elements table = tableclass.select("table");
             JSONObject tableMap = new JSONObject();
-            System.out.println(table.select("tr").size());
             for (Element row : table.select("tr")) {
                 JSONObject rowMap = new JSONObject();
                 int i = 0;
-                System.out.println(row);
                 for (Element point : row.select("td")) {
-                    System.out.println(point);
                     if (i == 0) {
-                        System.out.println(point.text());
                         tableMap.put(point.text(), rowMap);
                     } else if (i == 1) {
                         JSONObject median_home_value = rowMap.put("Median Home Value", Double.parseDouble(format.parse(point.text()).toString()));
@@ -43,7 +39,6 @@ public class PropertyTax {
                     i++;
                 }
             }
-            System.out.println(tableMap.toString(4));
             return tableMap;
         } catch (Exception e) {
             e.printStackTrace();
@@ -51,17 +46,17 @@ public class PropertyTax {
         }
     }
 
-    public static void main(String[] args) {
-        String state;
-        Document document=null;
+    public static JSONObject requestPropertyTaxInfo(String state) {
 
-        state = "new york";
+        Document document = null;
+
         String formatURL = String.format("https://smartasset.com/taxes/%s-property-tax-calculator", state);
-        try{
+        try {
             document = Jsoup.connect(formatURL).get();
-            parseTables(document);
-        } catch (Exception e){
+            return parseTables(document);
+        } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
     }
 }

@@ -8,8 +8,9 @@ import java.io.*;
 
 public class MortageRateScrape {
     public float mortgageRateAPIRequest() throws Exception {
+    String today = LocalDate.now().toString();
     String weekAgo = LocalDate.now().minusDays(7).toString();
-    String formatURL = String.format("https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&observation_start=%s&observation_end=2022-10-22&api_key=600f4c6e14418ed1524f7668f71794a9&sort_order=desc&limit=1&file_type=json", weekAgo);
+    String formatURL = String.format("https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&observation_start=%s&observation_end=%s&api_key=600f4c6e14418ed1524f7668f71794a9&sort_order=desc&limit=1&file_type=json", weekAgo, today);
 
     URL mortgageRatesURL = new URL(formatURL);
     URLConnection mortgageRatesAPI = mortgageRatesURL.openConnection();
